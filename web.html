@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NHÓM 7 - Quản lý Sinh Viên</title>
+
+    <style>
+       :root {
+    --primary-color: #5a0f2e;      /* Đỏ rượu */
+    --success-color: #8b1e3f;      /* Đỏ sẫm */
+    --info-color: #c9184a;         /* Hồng đậm */
+    --danger-color: #2b2b2b;       /* Đen */
+    --bg-color: #f7efe5;           /* Be nhạt */
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #f7efe5, #f3dcdc);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    background: #fffaf3;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(90,15,46,0.15);
+}
+
+/* HEADER */
+.header-team h1 {
+    color: var(--primary-color);
+    letter-spacing: 1px;
+}
+
+.header-team {
+    border-bottom: 3px solid var(--primary-color);
+}
+
+.team-list li {
+    color: #3a3a3a;
+}
+
+/* INPUT */
+.input-group {
+    background: #fff0f5;
+    border-left: 6px solid var(--primary-color);
+}
+
+input {
+    border: 1px solid #d6c6c6;
+    background: #fff;
+}
+
+input:focus {
+    border-color: var(--info-color);
+}
+
+/* BUTTON */
+.btn-add {
+    background: linear-gradient(135deg, #8b1e3f, #c9184a);
+    color: #fff;
+}
+
+.btn-edit {
+    background: #5a0f2e;
+    color: #fff;
+}
+
+.btn-delete {
+    background: #2b2b2b;
+    color: #fff;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* TABLE */
+table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th {
+    background: linear-gradient(135deg, #5a0f2e, #8b1e3f);
+    color: #fff;
+    text-align: center;
+}
+
+td {
+    color: #3a3a3a;
+}
+
+tr:hover {
+    background: #fff0f5;
+}
+
+/* AVATAR */
+.avatar-img {
+    width: 28px;
+    height: 28px;
+}
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header-team">
+        <h1>Nhóm 7- Chiều thứ 6</h1>
+        <ul class="team-list">
+            <li>Nguyễn Duy An - DH52200302</li>
+            <li>Nguyễn Thành Đạt - DH52200485</li>
+            <li>Trương Thanh Tâm - DH52201405</li>
+            <li>Nguyễn Chí Thành - DH52201458</li>
+            <li>Đặng Trường Thi - DH52201479</li>
+            <li>Huỳnh Phan Đan Tú - DH52201694</li>
+        </ul>
+    </div>
+
+    <h2>Quản lý Sinh Viên</h2>
+
+    <div class="input-group">
+        <input id="name" placeholder="Tên sinh viên">
+        <input id="phone" placeholder="Số điện thoại">
+        <input id="email" placeholder="Email">
+        <input id="address" placeholder="Địa chỉ">
+        <button class="btn-add" onclick="createSV()">+ Thêm</button>
+    </div>
+
+    <table>
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Ảnh</th>
+    <th>Tên</th>
+    <th>SĐT</th>
+    <th>Email</th>
+    <th>Địa chỉ</th>
+    <th>Hành động</th>
+</tr>
+</thead>
+
+        <tbody id="list"></tbody>
+    </table>
+
+</div>
+
+<script>
+const API_URL = "https://698592186964f10bf2539c69.mockapi.io/sinhvien/id";
+
+const $ = id => document.getElementById(id);
+const table = $("list");
+
+// ================= LOAD =================
+async function loadStudents() {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    renderTable(data);
+}
+
+// ================= RENDER =================
+function renderTable(data) {
+    table.innerHTML = data.map(sv => `
+        <tr>
+            <td>${sv.id}</td>
+            <td>
+                <img class="avatar-img"
+                     src="${sv.avatar || 'https://via.placeholder.com/28'}">
+            </td>
+            <td>${sv.name}</td>
+            <td>${sv.phone}</td>
+            <td>${sv.email}</td>
+            <td>${sv.address || ""}</td>
+            <td>
+                <button class="btn-edit" onclick="editSV(${sv.id})">Sửa</button>
+                <button class="btn-delete" onclick="deleteSV(${sv.id})">Xóa</button>
+            </td>
+        </tr>
+    `).join("");
+}
+
+// ================= CREATE =================
+async function createSV() {
+    const student = {
+        name: $("name").value,
+        phone: $("phone").value,
+        email: $("email").value,
+        address: $("address").value,
+        avatar: ""
+    };
+
+    await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(student)
+    });
+
+    clearInput();
+    loadStudents();
+}
+
+// ================= EDIT =================
+let editId = null;
+
+async function editSV(id) {
+    const res = await fetch(`${API_URL}/${id}`);
+    const sv = await res.json();
+
+    $("name").value = sv.name;
+    $("phone").value = sv.phone;
+    $("email").value = sv.email;
+    $("address").value = sv.address;
+
+    editId = id;
+}
+
+// ================= UPDATE =================
+async function updateSV() {
+    const student = {
+        name: $("name").value,
+        phone: $("phone").value,
+        email: $("email").value,
+        address: $("address").value
+    };
+
+    await fetch(`${API_URL}/${editId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(student)
+    });
+
+    editId = null;
+    clearInput();
+    loadStudents();
+}
+
+// ================= DELETE =================
+async function deleteSV(id) {
+    if (confirm("Bạn có chắc muốn xóa sinh viên này?")) {
+        await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+        loadStudents();
+    }
+}
+
+// ================= UTIL =================
+function clearInput() {
+    $("name").value = "";
+    $("phone").value = "";
+    $("email").value = "";
+    $("address").value = "";
+}
+
+loadStudents();
+</script>
+
+
+
+</body>
+</html>
